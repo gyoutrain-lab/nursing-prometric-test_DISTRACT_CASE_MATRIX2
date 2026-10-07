@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Learning Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 p-6 md:p-8">
+        <!-- Header / Scoreboard -->
+        <div class="flex justify-between items-center pb-6 mb-6 border-b border-slate-700">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-teal-400">Interactive Quiz</h1>
+                <p class="text-xs md:text-sm text-slate-400">Select the correct answer to proceed</p>
+            </div>
+            <div class="text-right">
+                <span class="text-xs uppercase tracking-wider text-slate-400 block">Score</span>
+                <span id="score-display" class="text-2xl font-extrabold text-amber-400">0</span>
+            </div>
+        </div>
+
+        <!-- Game Content -->
+        <div id="game-container">
+            <div class="mb-4 flex justify-between items-center text-sm font-semibold text-teal-400">
+                <span id="question-number">Question 1</span>
+                <span id="progress-text">1 of 3</span>
+            </div>
+
+            <h2 id="question-text" class="text-lg md:text-xl font-medium mb-6 text-slate-100 min-h-[3rem]">
+                Loading question...
+            </h2>
+
+            <div id="options-container" class="space-y-3 mb-6">
+                <!-- Buttons will be injected here dynamically -->
+            </div>
+
+            <div id="feedback-message" class="text-center font-bold text-base h-6"></div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div id="result-container" class="hidden text-center py-8">
+            <div class="text-5xl mb-4">🏆</div>
+            <h2 class="text-2xl font-bold text-slate-100 mb-2">Quiz Completed!</h2>
+            <p class="text-slate-400 mb-6">Your final score is:</p>
+            <div id="final-score" class="text-5xl font-black text-amber-400 mb-8">0</div>
+            <button onclick="restartGame()" class="bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold py-3 px-8 rounded-xl shadow-lg transition duration-200">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- Web Audio API Sound Synthesizer ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // Correct Sound (Upbeat Chime)
+        function playCorrectSound() {
+            initAudio();
+            const now = audioCtx.currentTime;
+            
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc1.type = 'sine';
+            osc2.type = 'triangle';
+
+            osc1.frequency.setValueAtTime(523.25, now); // C5
+            osc1.frequency.setValueAtTime(659.25, now + 0.1); // E5
+            osc1.frequency.setValueAtTime(783.99, now + 0.2); // G5
+
+            osc2.frequency.setValueAtTime(1046.50, now + 0.2); // C6
+
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.5);
+            osc2.stop(now + 0.5);
+        }
+
+        // Incorrect Sound (Low Error Buzzer)
+        function playIncorrectSound() {
+            initAudio();
+            const now = audioCtx.currentTime;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.setValueAtTime(110, now + 0.15);
+
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.4);
+        }
+
+        // Applause / Cheer Sound Synthesizer
+        function playApplauseSound() {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const duration = 2.5;
+
+            // Generate noise for clapping effect
+            const bufferSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            // Bandpass filter to sound like hands clapping
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(1200, now);
+            filter.Q.setValueAtTime(1.5, now);
+
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.01, now);
+            gain.gain.linearRampToValueAtTime(0.25, now + 0.3);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            noise.start(now);
+            noise.stop(now + duration);
+
+            // Add fanfare note sequence
+            const fanfareNotes = [523.25, 659.25, 783.99, 1046.50];
+            fanfareNotes.forEach((freq, index) => {
+                const noteOsc = audioCtx.createOscillator();
+                const noteGain = audioCtx.createGain();
+
+                noteOsc.type = 'triangle';
+                noteOsc.frequency.setValueAtTime(freq, now + (index * 0.12));
+
+                noteGain.gain.setValueAtTime(0.15, now + (index * 0.12));
+                noteGain.gain.exponentialRampToValueAtTime(0.001, now + (index * 0.12) + 0.4);
+
+                noteOsc.connect(noteGain);
+                noteGain.connect(audioCtx.destination);
+
+                noteOsc.start(now + (index * 0.12));
+                noteOsc.stop(now + (index * 0.12) + 0.4);
+            });
+        }
+
+        // --- Game Logic ---
+        const questions = [
+            {
+                question: "Which SBAR component details the immediate clinical problem or patient condition?",
+                options: ["Situation", "Background", "Assessment", "Recommendation"],
+                answer: 0
+            },
+            {
+                question: "Which parameter is typically assessed first during a primary patient survey?",
+                options: ["Circulation", "Airway", "Breathing", "Disability"],
+                answer: 1
+            },
+            {
+                question: "What is the primary objective of hand hygiene compliance in healthcare settings?",
+                options: ["Reducing medication side effects", "Preventing healthcare-associated infections", "Accelerating wound healing", "Improving clinical documentation"],
+                answer: 1
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnsweringAllowed = true;
+
+        function loadQuestion() {
+            isAnsweringAllowed = true;
+            const q = questions[currentQuestionIndex];
+
+            document.getElementById('question-number').innerText = `Question ${currentQuestionIndex + 1}`;
+            document.getElementById('progress-text').innerText = `${currentQuestionIndex + 1} of ${questions.length}`;
+            document.getElementById('question-text').innerText = q.question;
+            document.getElementById('feedback-message').innerText = '';
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium border border-slate-600 flex justify-between items-center";
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(idx, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(selectedIndex, buttonEl) {
+            if (!isAnsweringAllowed) return;
+            isAnsweringAllowed = false;
+
+            const q = questions[currentQuestionIndex];
+            const feedbackEl = document.getElementById('feedback-message');
+            const allButtons = document.querySelectorAll('.option-btn');
+
+            if (selectedIndex === q.answer) {
+                playCorrectSound();
+                score += 100;
+                document.getElementById('score-display').innerText = score;
+
+                buttonEl.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                buttonEl.classList.add('bg-emerald-600', 'border-emerald-500', 'text-white');
+                feedbackEl.innerText = "Correct!";
+                feedbackEl.className = "text-center font-bold text-base h-6 text-emerald-400";
+            } else {
+                playIncorrectSound();
+                buttonEl.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                buttonEl.classList.add('bg-rose-600', 'border-rose-500', 'text-white');
+
+                // Highlight correct answer
+                allButtons[q.answer].classList.remove('bg-slate-700');
+                allButtons[q.answer].classList.add('bg-emerald-600', 'border-emerald-500');
+
+                feedbackEl.innerText = "Incorrect!";
+                feedbackEl.className = "text-center font-bold text-base h-6 text-rose-400";
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < questions.length) {
+                    loadQuestion();
+                } else {
+                    finishGame();
+                }
+            }, 1200);
+        }
+
+        function finishGame() {
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('result-container').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score;
+            playApplauseSound();
+        }
+
+        function restartGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('result-container').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        // Initialize quiz on load
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
