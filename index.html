@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Learning Game</title>
+    <title>SCFHS Nursing Clinical Practice - 50 Cases</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .option-btn {
@@ -16,12 +16,12 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
 
-    <div class="w-full max-w-2xl bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 p-6 md:p-8">
+    <div class="w-full max-w-3xl bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 p-6 md:p-8 my-6">
         <!-- Header / Scoreboard -->
         <div class="flex justify-between items-center pb-6 mb-6 border-b border-slate-700">
             <div>
-                <h1 class="text-xl md:text-2xl font-bold text-teal-400">Interactive Quiz</h1>
-                <p class="text-xs md:text-sm text-slate-400">Select the correct answer to proceed</p>
+                <h1 class="text-xl md:text-2xl font-bold text-teal-400">SCFHS Nursing Clinical Board</h1>
+                <p class="text-xs md:text-sm text-slate-400">50 Priority Cases: Symptoms, Nursing Care & Pharmacology</p>
             </div>
             <div class="text-right">
                 <span class="text-xs uppercase tracking-wider text-slate-400 block">Score</span>
@@ -33,15 +33,15 @@
         <div id="game-container">
             <div class="mb-4 flex justify-between items-center text-sm font-semibold text-teal-400">
                 <span id="question-number">Question 1</span>
-                <span id="progress-text">1 of 3</span>
+                <span id="progress-text">1 of 50</span>
             </div>
 
-            <h2 id="question-text" class="text-lg md:text-xl font-medium mb-6 text-slate-100 min-h-[3rem]">
+            <h2 id="question-text" class="text-base md:text-lg font-medium mb-6 text-slate-100 min-h-[4rem]">
                 Loading question...
             </h2>
 
             <div id="options-container" class="space-y-3 mb-6">
-                <!-- Buttons will be injected here dynamically -->
+                <!-- Options injected dynamically -->
             </div>
 
             <div id="feedback-message" class="text-center font-bold text-base h-6"></div>
@@ -51,8 +51,9 @@
         <div id="result-container" class="hidden text-center py-8">
             <div class="text-5xl mb-4">🏆</div>
             <h2 class="text-2xl font-bold text-slate-100 mb-2">Quiz Completed!</h2>
-            <p class="text-slate-400 mb-6">Your final score is:</p>
-            <div id="final-score" class="text-5xl font-black text-amber-400 mb-8">0</div>
+            <p class="text-slate-400 mb-2">Your final score is:</p>
+            <div id="final-score" class="text-5xl font-black text-amber-400 mb-6">0</div>
+            <p id="accuracy-rate" class="text-slate-300 mb-8 font-semibold"></p>
             <button onclick="restartGame()" class="bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold py-3 px-8 rounded-xl shadow-lg transition duration-200">
                 Play Again
             </button>
@@ -73,7 +74,7 @@
             }
         }
 
-        // Correct Sound (Upbeat Chime)
+        // Correct Sound (High-pitched dual chime)
         function playCorrectSound() {
             initAudio();
             const now = audioCtx.currentTime;
@@ -86,13 +87,13 @@
             osc2.type = 'triangle';
 
             osc1.frequency.setValueAtTime(523.25, now); // C5
-            osc1.frequency.setValueAtTime(659.25, now + 0.1); // E5
-            osc1.frequency.setValueAtTime(783.99, now + 0.2); // G5
+            osc1.frequency.setValueAtTime(659.25, now + 0.08); // E5
+            osc1.frequency.setValueAtTime(783.99, now + 0.16); // G5
 
-            osc2.frequency.setValueAtTime(1046.50, now + 0.2); // C6
+            osc2.frequency.setValueAtTime(1046.50, now + 0.16); // C6
 
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
 
             osc1.connect(gain);
             osc2.connect(gain);
@@ -100,11 +101,11 @@
 
             osc1.start(now);
             osc2.start(now);
-            osc1.stop(now + 0.5);
-            osc2.stop(now + 0.5);
+            osc1.stop(now + 0.45);
+            osc2.stop(now + 0.45);
         }
 
-        // Incorrect Sound (Low Error Buzzer)
+        // Incorrect Sound (Low frequency double buzzer)
         function playIncorrectSound() {
             initAudio();
             const now = audioCtx.currentTime;
@@ -113,26 +114,26 @@
             const gain = audioCtx.createGain();
 
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.setValueAtTime(110, now + 0.15);
+            osc.frequency.setValueAtTime(160, now);
+            osc.frequency.setValueAtTime(120, now + 0.12);
 
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
             osc.start(now);
-            osc.stop(now + 0.4);
+            osc.stop(now + 0.35);
         }
 
-        // Applause / Cheer Sound Synthesizer
+        // Applause & Fanfare Sound Synthesizer
         function playApplauseSound() {
             initAudio();
             const now = audioCtx.currentTime;
-            const duration = 2.5;
+            const duration = 2.2;
 
-            // Generate noise for clapping effect
+            // Clapping noise generator
             const bufferSize = audioCtx.sampleRate * duration;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
@@ -144,15 +145,14 @@
             const noise = audioCtx.createBufferSource();
             noise.buffer = buffer;
 
-            // Bandpass filter to sound like hands clapping
             const filter = audioCtx.createBiquadFilter();
             filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(1200, now);
-            filter.Q.setValueAtTime(1.5, now);
+            filter.frequency.setValueAtTime(1100, now);
+            filter.Q.setValueAtTime(1.2, now);
 
             const gain = audioCtx.createGain();
             gain.gain.setValueAtTime(0.01, now);
-            gain.gain.linearRampToValueAtTime(0.25, now + 0.3);
+            gain.gain.linearRampToValueAtTime(0.22, now + 0.2);
             gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
             noise.connect(filter);
@@ -162,47 +162,533 @@
             noise.start(now);
             noise.stop(now + duration);
 
-            // Add fanfare note sequence
+            // Fanfare notes
             const fanfareNotes = [523.25, 659.25, 783.99, 1046.50];
             fanfareNotes.forEach((freq, index) => {
                 const noteOsc = audioCtx.createOscillator();
                 const noteGain = audioCtx.createGain();
 
                 noteOsc.type = 'triangle';
-                noteOsc.frequency.setValueAtTime(freq, now + (index * 0.12));
+                noteOsc.frequency.setValueAtTime(freq, now + (index * 0.1));
 
-                noteGain.gain.setValueAtTime(0.15, now + (index * 0.12));
-                noteGain.gain.exponentialRampToValueAtTime(0.001, now + (index * 0.12) + 0.4);
+                noteGain.gain.setValueAtTime(0.18, now + (index * 0.1));
+                noteGain.gain.exponentialRampToValueAtTime(0.001, now + (index * 0.1) + 0.35);
 
                 noteOsc.connect(noteGain);
                 noteGain.connect(audioCtx.destination);
 
-                noteOsc.start(now + (index * 0.12));
-                noteOsc.stop(now + (index * 0.12) + 0.4);
+                noteOsc.start(now + (index * 0.1));
+                noteOsc.stop(now + (index * 0.1) + 0.35);
             });
         }
 
-        // --- Game Logic ---
+        // --- 50 SCFHS Clinical Cases Question Bank ---
         const questions = [
             {
-                question: "Which SBAR component details the immediate clinical problem or patient condition?",
-                options: ["Situation", "Background", "Assessment", "Recommendation"],
+                question: "Case 1: A patient presents with substernal chest pain radiating to the left jaw, diaphoresis, and dyspnea. Vital signs show BP 150/90 mmHg, HR 108 bpm. Which immediate SCFHS nursing priority intervention is indicated?",
+                options: [
+                    "Administer Sublingual Nitroglycerin 0.4 mg every 5 mins (max 3 doses) and apply O2",
+                    "Administer Oral Paracetamol 1000 mg STAT",
+                    "Place patient in prone position and request chest CT scan",
+                    "Encourage deep breathing exercises and fluid bolus 1000 mL"
+                ],
                 answer: 0
             },
             {
-                question: "Which parameter is typically assessed first during a primary patient survey?",
-                options: ["Circulation", "Airway", "Breathing", "Disability"],
-                answer: 1
+                question: "Case 2: A adult asthma patient exhibits severe wheezing, intercostal retractions, and SpO2 88%. Which medication and dosage should be administered immediately via nebulizer?",
+                options: [
+                    "Salbutamol (Albuterol) 2.5 mg in 3 mL saline STAT",
+                    "Ipratropium bromide 500 mcg oral tablet daily",
+                    "Montelukast 10 mg PO at bedtime",
+                    "Methylprednisolone 2 g IV push over 1 second"
+                ],
+                answer: 0
             },
             {
-                question: "What is the primary objective of hand hygiene compliance in healthcare settings?",
-                options: ["Reducing medication side effects", "Preventing healthcare-associated infections", "Accelerating wound healing", "Improving clinical documentation"],
-                answer: 1
+                question: "Case 3: A patient with type 1 diabetes presents with tremor, diaphoresis, confusion, and blood glucose of 48 mg/dL (2.6 mmol/L). The patient is conscious. What is the immediate nursing action?",
+                options: [
+                    "Give 15–20 g of fast-acting simple carbohydrates (e.g., 150 mL fruit juice) PO",
+                    "Administer 10 units Regular Insulin SC",
+                    "Infuse 500 mL Normal Saline over 10 minutes",
+                    "Administer Metformin 850 mg PO with water"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 4: An unconscious hypoglycemic patient (blood glucose 36 mg/dL) has no IV access established. What is the correct rescue medication and administration route?",
+                options: [
+                    "Glucagon 1 mg IM / SC STAT",
+                    "Regular Insulin 50 units IM",
+                    "Oral Dextrose paste applied under the tongue while supine",
+                    "Dextrose 5% in water 1000 mL IV piggyback over 8 hours"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 5: A post-operative patient suddenly develops sharp pleuritic chest pain, tachypnea (RR 32 bpm), tachycardia (HR 120 bpm), and anxiety. What is the nurse's first intervention?",
+                options: [
+                    "Raise head of bed to High-Fowler's position and administer high-flow oxygen",
+                    "Administer IV Furosemide 80 mg STAT",
+                    "Perform immediate lower limb passive range-of-motion exercises",
+                    "Encourage coughing and deep breathing while flat in bed"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 6: A heart failure patient has bilateral basilar crackles, 3+ pitting pedal edema, and orthopnea. The physician orders Furosemide 40 mg IV push. How should the nurse administer this dose?",
+                options: [
+                    "Slow IV push over 1–2 minutes to prevent ototoxicity",
+                    "Rapid IV bolus push within 3 seconds",
+                    "Dilute in 1000 mL Normal Saline over 24 hours",
+                    "Subcutaneous injection in the deltoid region"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 7: A patient on a Heparin IV drip for DVT has an aPTT result >150 seconds with active mucosal bleeding. Which antidote and dosage protocol should the nurse anticipate?",
+                options: [
+                    "Protamine Sulfate 1 mg per 100 units of Heparin IV slow push",
+                    "Vitamin K1 (Phytonadione) 10 mg IM STAT",
+                    "Aminocaproic acid 5 g PO initial dose",
+                    "Fresh Frozen Plasma 4 units rapid bolus only"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 8: A patient taking Warfarin 5 mg daily has an INR report of 6.5 with minor bruising. What medication is prescribed as the specific Warfarin reversal agent?",
+                options: [
+                    "Vitamin K1 (Phytonadione) 2.5–5 mg PO / IV slowly",
+                    "Protamine Sulfate 50 mg IV",
+                    "Calcium Gluconate 10% IV",
+                    "Flumazenil 0.2 mg IV"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 9: A patient with acute anaphylaxis after penicillin administration exhibits stridor, facial angioedema, and BP 80/50 mmHg. What is the immediate drug of choice, dose, and route?",
+                options: [
+                    "Epinephrine 1:1,000 (0.3–0.5 mg) IM into anterolateral thigh",
+                    "Diphenhydramine 50 mg PO with a sip of water",
+                    "Hydrocortisone 100 mg SC in the abdomen",
+                    "Salbutamol 2.5 mg oral tablet STAT"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 10: A patient with severe sepsis has BP 82/46 mmHg despite 30 mL/kg fluid resuscitation. Which vasopressor is first-line per SCFHS guidelines to maintain MAP >= 65 mmHg?",
+                options: [
+                    "Norepinephrine continuous IV infusion via central line (0.01–3 mcg/kg/min)",
+                    "Dopamine 1 mcg/kg/min oral solution",
+                    "Atropine 0.5 mg IV push every 2 minutes",
+                    "Isoproterenol 10 mg SC bolus"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 11: A patient presenting with symptomatic sinus bradycardia (HR 36 bpm, dizziness, BP 84/52 mmHg). What is the initial emergency drug and dosage?",
+                options: [
+                    "Atropine Sulfate 1 mg IV bolus every 3–5 minutes (max 3 mg)",
+                    "Adenosine 6 mg rapid IV push followed by saline flush",
+                    "Amiodarone 300 mg slow IV infusion over 1 hour",
+                    "Metoprolol 5 mg IV slow push"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 12: A patient exhibits Stable Supraventricular Tachycardia (SVT) with HR 190 bpm responsive to vagal maneuvers failure. Which drug administration technique is required?",
+                options: [
+                    "Adenosine 6 mg rapid IV push over 1–2 seconds followed immediately by 20 mL saline flush",
+                    "Digoxin 0.25 mg slow IV push over 30 minutes",
+                    "Verapamil 10 mg PO once daily at bedtime",
+                    "Lidocaine 100 mg IM injection in gluteal muscle"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 13: A patient with Chronic Obstructive Pulmonary Disease (COPD) is experiencing acute exacerbation. What target SpO2 range should the nurse aim for during oxygen therapy?",
+                options: [
+                    "88% to 92% via Venturi mask or low-flow nasal cannula (1–2 L/min)",
+                    "98% to 100% via non-rebreather mask at 15 L/min",
+                    "80% to 84% on room air only",
+                    "95% to 100% using hyperbaric oxygen chamber"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 14: A client receiving Vancomycin IV piggyback develops facial flushing, erythema, and hypotension ('Red Man Syndrome'). What is the essential nursing action?",
+                options: [
+                    "Stop or slow the infusion rate to run over at least 60–90 minutes and notify provider",
+                    "Increase infusion rate to finish drug faster and clear reaction",
+                    "Discontinue Vancomycin permanently and apply cold compress to head",
+                    "Administer IV Potassium Chloride 20 mEq rapid push"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 15: A patient with acute ischemic stroke is evaluated for IV Alteplase (tPA). What critical criteria must be met regarding time window and blood pressure?",
+                options: [
+                    "Symptom onset within 3–4.5 hours and BP maintained < 185/110 mmHg",
+                    "Symptom onset within 12 hours and BP > 200/120 mmHg",
+                    "Symptom onset within 24 hours regardless of blood pressure",
+                    "Symptom onset within 1 hour with BP < 90/60 mmHg"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 16: A client with acute hyperkalemia (Serum K+ 6.8 mEq/L) displays peaked T-waves on ECG. Which emergency IV medication is given first to stabilize the myocardium?",
+                options: [
+                    "10% Calcium Gluconate 10 mL IV over 5–10 minutes",
+                    "Sodium Polystyrene Sulfonate (Kayexalate) 15 g PO",
+                    "Furosemide 20 mg PO daily",
+                    "Spironolactone 50 mg PO STAT"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 17: To shift potassium from extracellular space back into cells in severe hyperkalemia, which medication combination is administered IV?",
+                options: [
+                    "10 units Regular Insulin IV short push with 50 mL Dextrose 50% (D50W)",
+                    "NPH Insulin 20 units SC with Normal Saline 1000 mL",
+                    "Glargine Insulin 30 units SC with oral orange juice",
+                    "Metformin 1000 mg with Potassium Chloride IV"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 18: A head injury patient exhibits early signs of elevated intracranial pressure (ICP) including decreased LOC and headache. Which osmotic diuretic and administration precaution is used?",
+                options: [
+                    "Mannitol 20% IV infusion (0.5–1 g/kg) using an in-line filter needle",
+                    "Hydrochlorothiazide 25 mg PO daily morning dose",
+                    "Furosemide 100 mg SC injection twice daily",
+                    "Acetazolamide 500 mg IM in deltoid"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 19: A patient with severe pre-eclampsia (BP 170/110 mmHg, hyperreflexia) is started on Magnesium Sulfate IV infusion. Which sign indicates early Magnesium toxicity?",
+                options: [
+                    "Loss of deep tendon reflexes (patellar reflex) and RR < 12 bpm",
+                    "Hyperactive knee jerks and clonus",
+                    "Rapid respiratory rate (> 28 bpm) and hypertension",
+                    "Serum magnesium level of 2.0 mEq/L"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 20: What is the mandatory antidote to keep at the bedside for a client receiving Magnesium Sulfate IV therapy?",
+                options: [
+                    "10% Calcium Gluconate 1 g (10 mL) IV push slow over 3 minutes",
+                    "Naloxone 0.4 mg IV push",
+                    "Flumazenil 0.5 mg IV push",
+                    "Atropine 1 mg SC"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 21: A patient post-thyroidectomy develops circumoral tingling, carpopedal spasm (Trousseau's sign), and positive Chvostek's sign. What medication should be immediately administered?",
+                options: [
+                    "Calcium Gluconate 10% IV slowly",
+                    "Levothyroxine 100 mcg PO",
+                    "Potassium Chloride 40 mEq IV",
+                    "Sodium Bicarbonate 8.4% IV"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 22: A psychiatric patient receiving Haloperidol develops severe muscle rigidity, high fever (40°C), diaphoresis, and autonomic instability. What condition and priority intervention are expected?",
+                options: [
+                    "Neuroleptic Malignant Syndrome (NMS); stop Haloperidol immediately and administer Dantrolene IV",
+                    "Extrapyramidal symptoms (EPS); increase Haloperidol dose",
+                    "Serotonin Syndrome; give Fluoxetine 20 mg PO",
+                    "Tardive Dyskinesia; give Benztropine IM and continue drug"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 23: A patient receiving Morphine Sulfate 4 mg IV push post-operatively becomes unresponsive with pinpoint pupils and RR 6 bpm. What is the priority nursing action?",
+                options: [
+                    "Administer Naloxone (Narcan) 0.4 mg IV push and provide ventilatory support",
+                    "Administer Flumazenil 0.2 mg IV push",
+                    "Infuse 500 mL Normal Saline rapidly",
+                    "Place in Trendelenburg position and monitor for 1 hour"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 24: A patient taking Digoxin 0.25 mg daily reports nausea, yellow-green visual halos, and weakness. Serum Digoxin level is 2.8 ng/mL. Which intervention is indicated?",
+                options: [
+                    "Hold Digoxin dose, notify physician, and administer Digoxin Immune Fab (Digibind) if life-threatening",
+                    "Encourage high-potassium diet and give double dose Digoxin",
+                    "Administer Furosemide 40 mg IV immediately",
+                    "Continue dose and reassess in 48 hours"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 25: A patient with acute Diabetic Ketoacidosis (DKA) has blood glucose 450 mg/dL, arterial pH 7.18, and positive urine ketones. Which insulin regimen and IV fluid are ordered initially?",
+                options: [
+                    "0.9% Normal Saline IV bolus followed by Regular Insulin IV continuous infusion (0.1 units/kg/hr)",
+                    "NPH Insulin 30 units SC STAT with 5% Dextrose in Water",
+                    "Insulin Glargine 40 units SC twice daily with no IV fluid",
+                    "Insulin Lispro 20 units SC before meals only"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 26: In DKA management, when blood glucose drops to 250 mg/dL (13.8 mmol/L), what solution is added to IV fluids to prevent cerebral edema and hypoglycemia?",
+                options: [
+                    "5% Dextrose with 0.45% Normal Saline IV infusion",
+                    "0.9% Normal Saline 1000 mL bolus",
+                    "Sterile Water for Injection 500 mL IV",
+                    "Ringer's Lactate without glucose"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 27: A child presenting with croup (laryngotracheobronchitis) displays a barking cough, inspiratory stridor at rest, and sternal retractions. Which nebulized therapy is indicated per SCFHS protocol?",
+                options: [
+                    "Nebulized Racemic Epinephrine (0.5 mL of 2.25% solution) and Dexamethasone PO/IM",
+                    "Nebulized Salbutamol and Oral Amoxicillin",
+                    "Nebulized Acetylcysteine and Morphine SC",
+                    "Inhaled Fluticasone only twice weekly"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 28: A client undergoing hemodialysis via a left arteriovenous (AV) fistula requires routine nursing care. Which nursing action is essential to protect the fistula site?",
+                options: [
+                    "Avoid blood pressure measurement and venipuncture in the left arm",
+                    "Perform routine IV lines in the AV fistula vein",
+                    "Apply tight blood pressure cuff on left arm every 15 minutes",
+                    "Keep left arm immobilized in a splint at all times"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 29: A patient with deep vein thrombosis (DVT) is starting IV Unfractionated Heparin. Which laboratory parameter must be monitored every 6 hours to adjust the infusion rate?",
+                options: [
+                    "Activated Partial Thromboplastin Time (aPTT)",
+                    "Prothrombin Time / International Normalized Ratio (PT/INR)",
+                    "Bleeding Time",
+                    "Serum Creatinine level"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 30: A client post-operative day 1 following abdominal surgery complains of incisional pain rated 8/10. What is the priority nursing assessment before administering IV Morphine?",
+                options: [
+                    "Assess baseline Respiratory Rate and pain score",
+                    "Check serum sodium and potassium levels",
+                    "Verify urine output over the past 24 hours",
+                    "Perform abdominal wound dressing change"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 31: A client with liver cirrhosis presents with hepatic encephalopathy and elevated serum ammonia levels (120 mcg/dL). Which medication is administered to lower ammonia levels via stool excretion?",
+                options: [
+                    "Lactulose 30 mL PO 3–4 times daily, titrated to achieve 2–3 soft stools/day",
+                    "Spironolactone 100 mg PO daily morning dose",
+                    "Neomycin 500 mg IV push every 4 hours",
+                    "Rifaximin 200 mg SC once weekly"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 32: A patient with pulmonary edema presents with severe dyspnea, anxiety, and pink frothy sputum. Which position and initial pharmacotherapy combination are indicated?",
+                options: [
+                    "High-Fowler's position with legs dangling, oxygen, IV Furosemide, and IV Morphine",
+                    "Trendelenburg position with IV Normal Saline bolus 1000 mL",
+                    "Left lateral recumbent position with SC Insulin",
+                    "Supine position with chest binder and bronchodilators PO"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 33: A client with acute gouty arthritis presents with severe pain and swelling in the right big toe. Which anti-inflammatory drug is specifically indicated for acute gout attacks within 12 hours of onset?",
+                options: [
+                    "Colchicine 1.2 mg PO STAT followed by 0.6 mg 1 hour later",
+                    "Allopurinol 300 mg PO daily long-term maintainance",
+                    "Probenecid 500 mg PO twice daily",
+                    "Paracetamol 500 mg PO every 8 hours"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 34: A client receiving Total Parenteral Nutrition (TPN) via a central line has the bag run out before the new bag arrives from pharmacy. What IV solution should be temporarily infused to prevent rebound hypoglycemia?",
+                options: [
+                    "10% Dextrose in Water (D10W) at the same infusion rate",
+                    "0.9% Normal Saline at keep-vein-open rate",
+                    "Lactated Ringer's solution rapid bolus",
+                    "Sterile Water for Injection IV push"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 35: A patient with suspected bacterial meningitis exhibits fever, nuchal rigidity, and positive Kernig's sign. Which isolation precaution and diagnostic sequence are required?",
+                options: [
+                    "Droplet precautions immediately, blood cultures, lumbar puncture, then empirical IV antibiotics",
+                    "Contact precautions, chest X-ray, then oral antibiotics home discharge",
+                    "Standard precautions only, immediate STAT brain MRI without labs",
+                    "Airborne precautions, single dose oral paracetamol, wait 24 hours"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 36: A client with active Pulmonary Tuberculosis (TB) is placed on Airborne Precautions. What personal protective equipment (PPE) is mandatory for nurses entering the room?",
+                options: [
+                    "Fit-tested N95 or HEPA respirator mask",
+                    "Standard surgical mask with face shield",
+                    "Sterile gloves and fluid-resistant gown only",
+                    "Simple cloth mask and shoe covers"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 37: A client diagnosed with active TB is started on Rifampicin. What essential patient education regarding side effects should the nurse provide?",
+                options: [
+                    "Body fluids (urine, tears, sweat, saliva) will turn a benign orange-red color",
+                    "Permanent loss of hearing and tinnitus will occur",
+                    "Severe peripheral neuropathy requiring immediate drug cessation",
+                    "Blood pressure will dangerously drop after each dose"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 38: A client receiving Isoniazid (INH) therapy for TB complains of numbness and tingling in the hands and feet. Which supplement is administered to prevent and treat this peripheral neuropathy?",
+                options: [
+                    "Pyridoxine (Vitamin B6) 25–50 mg PO daily",
+                    "Cyanocobalamin (Vitamin B12) 1000 mcg IM monthly",
+                    "Ascorbic Acid (Vitamin C) 1000 mg PO daily",
+                    "Thiamine (Vitamin B1) 100 mg PO daily"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 39: An infant with pyloric stenosis presents with non-bilious projectile vomiting after feeding and an olive-shaped mass in the epigastrium. What laboratory abnormality is expected?",
+                options: [
+                    "Hypochloremic hypokalemic metabolic alkalosis",
+                    "Hyperchloremic hyperkalemic metabolic acidosis",
+                    "Respiratory acidosis with hypoxemia",
+                    "Normal electrolyte balance"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 40: A pediatric patient with Intussusception presents with sudden intermittent abdominal pain, jelly-like red stools, and a sausage-shaped abdominal mass. What is the definitive non-surgical treatment?",
+                options: [
+                    "Air or Barium Enema under fluoroscopic guidance",
+                    "Immediate oral administration of mineral oil",
+                    "High-dose oral antibiotics for 14 days",
+                    "Continuous nasogastric suction without imaging"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 41: A nurse is caring for a client with Addisonian Crisis presenting with severe hypotension, hyponatremia, and hyperkalemia. Which IV drug is administered STAT?",
+                options: [
+                    "Hydrocortisone 100 mg IV bolus followed by continuous infusion and 0.9% Normal Saline",
+                    "Regular Insulin 30 units SC without dextrose",
+                    "Fludrocortisone 10 mg PO once weekly",
+                    "Spironolactone 100 mg PO STAT"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 42: A patient with Cushing's Syndrome exhibits moon face, central obesity, hypertension, and hyperglycemia. Which nursing intervention is essential to prevent injury?",
+                options: [
+                    "Protect delicate skin from trauma, prevent infection, and monitor blood glucose levels",
+                    "Encourage high-sodium, low-protein, restricted fluid diet",
+                    "Place patient on strict bed rest in prone position",
+                    "Administer IV potassium restriction protocol"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 43: A client with a head injury develops Diabetes Insipidus (DI) characterized by polyuria (500 mL/hr) and high serum osmolality. Which hormone replacement drug is administered?",
+                options: [
+                    "Desmopressin (DDAVP) SC / IV / Intranasal",
+                    "Regular Insulin SC",
+                    "Oxytocin IV piggyback",
+                    "Levothyroxine PO"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 44: A client with SIADH (Syndrome of Inappropriate Antidiuretic Hormone) presents with dilutional hyponatremia (Na+ 118 mEq/L) and fluid retention. What are the key interventions?",
+                options: [
+                    "Fluid restriction (500–1000 mL/day) and hypertonic (3%) Saline IV infusion slowly",
+                    "Encourage 3000 mL fluid intake daily with hypotonic saline",
+                    "Administer Desmopressin intranasal every 6 hours",
+                    "Infuse Dextrose 5% in Water rapidly"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 45: A client experiencing status epilepticus has continuous seizure activity lasting > 5 minutes. What is the first-line medication, dose, and route per emergency protocol?",
+                options: [
+                    "Lorazepam 4 mg IV slow push over 2 minutes (or Midazolam 10 mg IM)",
+                    "Phenytoin 100 mg PO with water",
+                    "Valproic Acid 500 mg rectal suppository after 30 minutes",
+                    "Carbamazepine 200 mg tube feed"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 46: When administering IV Phenytoin (Dilantin) for seizure management, which IV line administration rules must be followed?",
+                options: [
+                    "Mix ONLY with 0.9% Normal Saline and administer no faster than 50 mg/min IV push",
+                    "Mix with 5% Dextrose in Water and give rapidly over 10 seconds",
+                    "Administer via continuous SC infusion in small veins",
+                    "Dilute in Lactated Ringer's and flush with Heparin"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 47: A client in labor at 39 weeks gestation is receiving Oxytocin IV infusion for induction. The nurse notes uterine hyperstimulation (5 contractions in 10 mins) and late fetal decelerations. What is the immediate sequence of actions?",
+                options: [
+                    "Stop Oxytocin infusion, turn client to left lateral position, apply O2 at 10 L/min via non-rebreather, increase main IV fluid",
+                    "Increase Oxytocin rate, place in supine position, perform vaginal examination",
+                    "Administer IV Morphine and double Oxytocin infusion rate",
+                    "Encourage patient to bear down and push immediately"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 48: A postpartum patient presents with severe vaginal bleeding (PPH) exceeding 800 mL after placenta delivery. After fundal massage, which uterotonic medication is given IM/IV?",
+                options: [
+                    "Oxytocin 10–40 units in 1000 mL IV fluid or Ergometrine (Methylergonovine) 0.2 mg IM",
+                    "Magnesium Sulfate 4 g IV bolus",
+                    "Terbutaline 0.25 mg SC injection",
+                    "Nifedipine 20 mg PO"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 49: A client with severe major depressive disorder is prescribed Monoamine Oxidase Inhibitors (MAOIs) such as Phenelzine. Which dietary restriction must be enforced to prevent hypertensive crisis?",
+                options: [
+                    "Strictly avoid Tyramine-containing foods (aged cheese, cured meats, red wine, fava beans)",
+                    "Strictly avoid citrus fruits and green leafy vegetables",
+                    "Restrict daily sodium intake to under 500 mg",
+                    "Avoid milk, dairy products, and high-protein drinks"
+                ],
+                answer: 0
+            },
+            {
+                question: "Case 50: A client undergoing blood transfusion develops fever, chills, low back pain, and dark urine 15 minutes after start. What is the critical immediate nursing intervention?",
+                options: [
+                    "Stop the transfusion immediately, disconnect tubing at hub, keep vein open with normal saline, and notify provider/blood bank",
+                    "Slow down the transfusion rate to half speed and observe for 30 minutes",
+                    "Administer oral Paracetamol 500 mg and continue blood infusion",
+                    "Flush the blood line rapidly with 500 mL sterile water"
+                ],
+                answer: 0
             }
         ];
 
         let currentQuestionIndex = 0;
         let score = 0;
+        let correctCount = 0;
         let isAnsweringAllowed = true;
 
         function loadQuestion() {
@@ -219,7 +705,7 @@
 
             q.options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = "option-btn w-full text-left p-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium border border-slate-600 flex justify-between items-center";
+                btn.className = "option-btn w-full text-left p-4 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium border border-slate-600 flex justify-between items-center text-sm md:text-base";
                 btn.innerText = opt;
                 btn.onclick = () => selectOption(idx, btn);
                 optionsContainer.appendChild(btn);
@@ -237,6 +723,7 @@
             if (selectedIndex === q.answer) {
                 playCorrectSound();
                 score += 100;
+                correctCount++;
                 document.getElementById('score-display').innerText = score;
 
                 buttonEl.classList.remove('bg-slate-700', 'hover:bg-slate-600');
@@ -270,19 +757,23 @@
             document.getElementById('game-container').classList.add('hidden');
             document.getElementById('result-container').classList.remove('hidden');
             document.getElementById('final-score').innerText = score;
+            
+            const accuracy = Math.round((correctCount / questions.length) * 100);
+            document.getElementById('accuracy-rate').innerText = `Accuracy: ${accuracy}% (${correctCount} of ${questions.length} correct)`;
+            
             playApplauseSound();
         }
 
         function restartGame() {
             currentQuestionIndex = 0;
             score = 0;
+            correctCount = 0;
             document.getElementById('score-display').innerText = score;
             document.getElementById('result-container').classList.add('hidden');
             document.getElementById('game-container').classList.remove('hidden');
             loadQuestion();
         }
 
-        // Initialize quiz on load
         window.onload = loadQuestion;
     </script>
 </body>
